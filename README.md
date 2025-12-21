@@ -128,35 +128,12 @@ flutter build web --release
 # Output: build/web/
 ```
 
-## Project Structure
-
-```
-gonotes/
-├── lib/
-│   ├── main.dart                 # App entry point
-│   ├── models/
-│   │   └── note.dart            # Note data model
-│   ├── services/
-│   │   ├── database_service.dart # SQLite database operations
-│   │   └── note_provider.dart    # State management
-│   ├── screens/
-│   │   ├── note_list_screen.dart # Note list view
-│   │   └── note_editor_screen.dart # Monaco editor screen
-│   └── widgets/
-│       ├── monaco_editor_widget.dart # Monaco wrapper
-│       └── language_selector.dart    # Language picker
-├── test/                        # Unit & widget tests
-├── android/                     # Android-specific code
-├── ios/                        # iOS-specific code
-└── pubspec.yaml               # Dependencies
-```
-
 ## Usage Guide
 
 ### Creating a New Note
 1. Tap the **+** button (floating action button)
 2. Enter a title
-3. Start typing in the Monaco editor
+3. Start typing in the editor
 4. Auto-save will save your changes automatically
 
 ### Changing Language/Syntax
@@ -165,16 +142,7 @@ gonotes/
 3. Select your desired language
 4. Syntax highlighting updates immediately
 
-### Changing Theme
-1. Open a note
-2. Tap the **palette icon** in the app bar
-3. Choose from available themes:
-   - Dark (VS Code) - Default
-   - Light (VS Code)
-   - High Contrast Dark
-   - High Contrast Light
-
-### Importing Files
+### Importing Files -- TODO
 1. From the note list, tap the **menu** (three dots)
 2. Select **Import File**
 3. Choose a file from your device
@@ -191,7 +159,7 @@ gonotes/
 2. Pinned notes appear at the top with an amber pin icon
 3. Tap again to unpin
 
-### Sharing Notes
+### Sharing Notes ... TODO
 1. Open a note
 2. Tap the **menu** (three dots)
 3. Select **Share**
@@ -247,22 +215,12 @@ flutter analyze --fatal-infos
 
 ## Performance Optimization
 
-### Monaco Editor
-- Monaco loads from CDN on first use
-- Subsequent loads use cached resources
-- Disable minimap for better mobile performance (already configured)
-
 ### Database
 - Uses indexes for fast search
 - Batch operations for multiple updates
 - Connection pooling via singleton pattern
 
 ## Troubleshooting
-
-### Monaco Editor Not Loading
-- Ensure internet connection on first launch
-- Check that WebView is enabled
-- Clear app cache and restart
 
 ### Build Errors
 ```bash
@@ -321,11 +279,7 @@ flutter run
 3. Add file extension mapping in `note_provider.dart` `importNote()`
 
 ## Known Limitations
-
-1. **Monaco Package**: The `flutter_monaco_editor` package is relatively new and may have some platform-specific issues
-2. **WebView Dependency**: Monaco requires WebView support
-3. **Large Files**: Very large files (>1MB) may impact performance
-4. **Offline**: Monaco CDN requires internet on first load
+1. **Large Files**: Very large files (>1MB) may impact performance
 
 ## Future Enhancements
 
@@ -346,7 +300,7 @@ MIT License - Feel free to use and modify as needed.
 
 - **Framework**: Flutter 3.2+
 - **Language**: Dart 3.0+
-- **Editor**: Monaco Editor (flutter_monaco_editor)
+- **Editor**: Re-edit flutter package
 - **Database**: SQLite (sqflite)
 - **State Management**: Provider
 - **UI**: Material Design 3
@@ -358,6 +312,6 @@ For issues and feature requests, please use the GitHub issue tracker.
 
 ## Acknowledgments
 
-- Monaco Editor by Microsoft
+- Re-edit folks
 - Flutter team at Google
 - All open-source contributors
