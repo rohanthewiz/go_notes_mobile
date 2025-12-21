@@ -1,0 +1,51 @@
+name: gonotes
+description: A mini programmer's editor with Monaco integration
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Code Editor for Flutter
+  re_editor: ^0.8.0
+  re_highlight: ^0.0.3  # Syntax highlighting for re_editor
+
+  # State Management
+  provider: ^6.1.1
+
+  # Local Storage
+  sqflite: ^2.3.0
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+  # File System
+  file_picker: ^8.1.6
+  share_plus: ^12.0.1
+
+  # UI Components
+  cupertino_icons: ^1.0.6
+  flutter_svg: ^2.0.9
+  google_fonts: ^6.1.0
+
+  # Utilities
+  intl: ^0.19.0
+  uuid: ^4.2.1
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  mockito: ^5.4.4
+  build_runner: ^2.4.7
+  sqflite_common_ffi: ^2.3.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/
