@@ -312,6 +312,7 @@ For issues and feature requests, please use the GitHub issue tracker.
 
 ## Acknowledgments
 
+- Claude Code - Thanks Anthropic!
 - Re-edit folks
 - Flutter team at Google
 - All open-source contributors
