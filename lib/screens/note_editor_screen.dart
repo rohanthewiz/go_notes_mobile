@@ -1,22 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import '../models/note.dart';
 import '../services/note_provider.dart';
 import '../widgets/code_editor_widget.dart';
 import '../widgets/language_selector.dart';
-
-/// KeySet for Ctrl+S on all platforms
-final _saveKeySet = LogicalKeySet(
-  LogicalKeyboardKey.control,
-  LogicalKeyboardKey.keyS,
-);
-
-/// Intent for save action triggered by keyboard shortcut
-class SaveIntent extends Intent {
-  const SaveIntent();
-}
+import '../widgets/share_bottom_sheet.dart';
 
 class NoteEditorScreen extends StatefulWidget {
   final String noteId;
@@ -46,6 +35,25 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   void initState() {
     super.initState();
     _loadNote();
+
+    // Register hardware keyboard listener for Ctrl+S
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    // Debug: Log all key events
+    if (event is KeyDownEvent) {
+      print('HardwareKeyboard: ${event.logicalKey.keyLabel}');
+
+      // Handle Ctrl+S for save
+      if (event.logicalKey == LogicalKeyboardKey.keyS &&
+          HardwareKeyboard.instance.isControlPressed) {
+        print('Ctrl+S detected, saving...');
+        _saveNote();
+        return true; // Consume the event
+      }
+    }
+    return false; // Let other keys pass through
   }
 
   Future<void> _loadNote() async {
@@ -100,11 +108,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   // Auto-save debouncing
   DateTime? _lastAutoSave;
   Future<void> _debounceAutoSave() async {
-    await Future.delayed(const Duration(seconds: 10));
+    await Future.delayed(const Duration(seconds: 7));
     final now = DateTime.now();
 
     if (_lastAutoSave == null ||
-        now.difference(_lastAutoSave!) > const Duration(seconds: 10)) {
+        now.difference(_lastAutoSave!) > const Duration(seconds: 7)) {
       _lastAutoSave = now;
       if (_hasUnsavedChanges) {
         await _saveNote();
@@ -112,21 +120,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     }
   }
 
-  Future<void> _shareNote() async {
+  void _showShareBottomSheet() {
     if (_note == null) return;
 
-    try {
-      await Share.share(
-        _currentContent,
-        subject: _titleController.text,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error sharing note: $e')),
-        );
-      }
-    }
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => ShareBottomSheet(note: _note!),
+    );
   }
 
   void _showLanguageSelector() {
@@ -230,6 +234,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     _titleController.dispose();
     _titleFocusNode.dispose();
     super.dispose();
@@ -243,23 +248,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       );
     }
 
-    // Wrap with Shortcuts and Actions to handle keyboard shortcuts
-    return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        _saveKeySet: const SaveIntent(),
-      },
-      child: Actions(
-        actions: <Type, Action<Intent>>{
-          SaveIntent: CallbackAction<SaveIntent>(
-            onInvoke: (SaveIntent intent) {
-              _saveNote();
-              return null;
-            },
-          ),
-        },
-        child: WillPopScope(
-          onWillPop: _onWillPop,
-          child: Scaffold(
+    // No Shortcuts wrapper - Ctrl+S handled via HardwareKeyboard listener
+    // This ensures navigation keys can reach the CodeEditor without interference
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
         appBar: AppBar(
           title: TextField(
             controller: _titleController,
@@ -312,7 +305,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               onSelected: (value) {
                 switch (value) {
                   case 'share':
-                    _shareNote();
+                    _showShareBottomSheet();
                     break;
                   case 'auto_save':
                     setState(() {
@@ -403,7 +396,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 ],
               ),
             ),
-            // Code Editor
+            // Code Editor - no shortcuts wrapper, CodeEditor handles its own keyboard input
             Expanded(
               child: CodeEditorWidget(
                 initialValue: _currentContent,
@@ -424,8 +417,6 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 child: const Icon(Icons.save),
               )
             : null,
-      ),
-        ),
       ),
     );
   }

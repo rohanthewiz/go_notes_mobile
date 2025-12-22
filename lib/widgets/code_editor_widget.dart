@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:re_highlight/languages/markdown.dart';
 import 'package:re_highlight/languages/javascript.dart';
@@ -42,6 +43,7 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
   late CodeLineEditingController _controller;
   final FocusNode _focusNode = FocusNode();
   late CodeScrollController _scrollController;
+  String _lastText = ''; // Track last text to detect actual content changes
 
   @override
   void initState() {
@@ -50,12 +52,23 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
 
     // Create controller with initial content
     _controller = CodeLineEditingController.fromText(widget.initialValue);
+    _lastText = widget.initialValue; // Initialize last text
+
+    // Debug: Listen to focus changes
+    _focusNode.addListener(() {
+      print('CodeEditor focus changed: ${_focusNode.hasFocus}');
+    });
 
     // Defer listener setup to avoid calling setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Listen to content changes and notify parent
+      // Listen to content changes and notify parent only when text actually changes
+      // This prevents cursor movements from triggering "unsaved changes"
       _controller.addListener(() {
-        widget.onChanged?.call(_controller.text);
+        final currentText = _controller.text;
+        if (currentText != _lastText) {
+          _lastText = currentText;
+          widget.onChanged?.call(currentText);
+        }
       });
     });
   }
@@ -118,13 +131,60 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
     // Get language mode for current language
     final languageMode = _getLanguageMode(widget.language);
 
-    return CodeEditor(
-      controller: _controller,
-      focusNode: _focusNode,
-      scrollController: _scrollController,
-      readOnly: widget.readOnly,
-      wordWrap: true,
-      style: CodeEditorStyle(
+    // Wrap in Focus with custom onKey handler to add navigation support on Android
+    // The re_editor package doesn't support arrow keys on Android by default
+    return Focus(
+      onKeyEvent: (node, event) {
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+        print('Focus onKeyEvent: ${event.logicalKey.keyLabel}');
+
+        // Handle navigation keys using the controller's moveCursor method
+        final key = event.logicalKey;
+        if (key == LogicalKeyboardKey.arrowUp) {
+          _controller.moveCursor(AxisDirection.up);
+          return KeyEventResult.handled;
+        } else if (key == LogicalKeyboardKey.arrowDown) {
+          _controller.moveCursor(AxisDirection.down);
+          return KeyEventResult.handled;
+        } else if (key == LogicalKeyboardKey.arrowLeft) {
+          _controller.moveCursor(AxisDirection.left);
+          return KeyEventResult.handled;
+        } else if (key == LogicalKeyboardKey.arrowRight) {
+          _controller.moveCursor(AxisDirection.right);
+          return KeyEventResult.handled;
+        } else if (key == LogicalKeyboardKey.pageUp) {
+          _controller.moveCursorToPageUp();
+          return KeyEventResult.handled;
+        } else if (key == LogicalKeyboardKey.pageDown) {
+          _controller.moveCursorToPageDown();
+          return KeyEventResult.handled;
+        } else if (key == LogicalKeyboardKey.home) {
+          _controller.moveCursorToLineStart();
+          return KeyEventResult.handled;
+        } else if (key == LogicalKeyboardKey.end) {
+          _controller.moveCursorToLineEnd();
+          return KeyEventResult.handled;
+        }
+
+        return KeyEventResult.ignored;
+      },
+      child: GestureDetector(
+        onTap: () {
+          print('CodeEditor tapped, requesting focus');
+          _focusNode.requestFocus();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: CodeEditor(
+        controller: _controller,
+        focusNode: _focusNode,
+        scrollController: _scrollController,
+        readOnly: widget.readOnly,
+        autofocus: !widget.readOnly,
+        wordWrap: true,
+        // Explicitly provide shortcuts activators
+        shortcutsActivatorsBuilder: const DefaultCodeShortcutsActivatorsBuilder(),
+        style: CodeEditorStyle(
         // Syntax highlighting with language
         codeTheme: CodeHighlightTheme(
           languages: {
@@ -160,6 +220,8 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
       // Enable code folding
       chunkAnalyzer: DefaultCodeChunkAnalyzer(),
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        ),
+      ),
     );
   }
 
