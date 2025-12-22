@@ -16,15 +16,18 @@ A powerful Flutter-based note-taking application with native code editor, design
   - Perfect keyboard support (onscreen and external)
 
 ### 💼 Developer-Friendly
-- **Multiple Themes**: Atom One Dark, Atom One Light
-- **Keyboard Shortcuts**: Full support for standard editor shortcuts
-  - `Ctrl+S` - Save note (works with external keyboards)
-  - `Ctrl+F` - Find
-  - `Ctrl+H` - Find & Replace
-  - `Ctrl+Z` - Undo
-  - `Ctrl+Y` - Redo
-  - `Ctrl+/` - Toggle comment
-- **Smart Auto-Save**: 10-second delay after typing stops
+- **Multiple Themes**: Atom One Dark, Atom One Light, High Contrast variants
+- **Physical Keyboard Support**: Full navigation with external keyboards
+  - **Navigation**: Arrow keys, Page Up/Down, Home/End
+  - **Shortcuts**:
+    - `Ctrl+S` - Save note
+    - `Ctrl+F` - Find
+    - `Ctrl+H` - Find & Replace
+    - `Ctrl+Z` - Undo
+    - `Ctrl+Y` - Redo
+    - `Ctrl+/` - Toggle comment
+  - **Android Support**: Custom keyboard handler for arrow keys and navigation
+- **Smart Auto-Save**: 7-second delay after typing stops
 - **Visual Indicators**: Clean save status (no intrusive toasts)
 
 ### 📝 Note Management
@@ -32,7 +35,11 @@ A powerful Flutter-based note-taking application with native code editor, design
 - **Search**: Full-text search across all notes
 - **Pin Notes**: Keep important notes at the top
 - **File Import**: Import existing code files
-- **Share**: Share notes to other apps
+- **Export & Share**: Multiple export formats
+  - **Markdown** - Plain text with formatting
+  - **HTML** - Styled with syntax highlighting
+  - **PDF** - Professional formatted documents
+  - **Share** - Share to other apps via system share sheet
 
 ### 🎯 Supported Languages
 
@@ -159,11 +166,17 @@ flutter build web --release
 2. Pinned notes appear at the top with an amber pin icon
 3. Tap again to unpin
 
-### Sharing Notes ... TODO
+### Exporting and Sharing Notes
 1. Open a note
-2. Tap the **menu** (three dots)
-3. Select **Share**
-4. Choose your sharing method
+2. Tap the **menu** (three dots in app bar)
+3. Select **Share/Export**
+4. Choose your export format:
+   - **Copy as Markdown** - Quick copy to clipboard
+   - **Export as HTML** - Save with syntax highlighting
+   - **Export as PDF** - Professional document format
+   - **Share** - Send via email, messaging, or other apps
+5. For file exports, choose save location
+6. File is saved and ready to use
 
 ## Testing
 
@@ -266,6 +279,16 @@ flutter run
 - **Responsive**: Adapts to different screen sizes
 - **Accessibility**: Screen reader support, semantic labels
 
+### Code Editor Implementation
+- **re_editor Package**: Native Flutter code editor (no WebView)
+- **Android Keyboard Navigation**: Custom implementation
+  - `Focus` widget with `onKeyEvent` handler intercepts navigation keys
+  - Uses controller methods: `moveCursor()`, `moveCursorToPageUp()`, etc.
+  - Prevents false "unsaved changes" by comparing actual text content
+  - Navigation keys work without interfering with text editing
+- **Hardware Keyboard**: `HardwareKeyboard` listener for global shortcuts (Ctrl+S)
+- **Syntax Highlighting**: re_highlight package with 100+ language support
+
 ## Contributing
 
 ### Code Style
@@ -289,8 +312,9 @@ flutter run
 - [ ] Collaborative editing
 - [ ] Custom themes
 - [ ] Plugin system
-- [ ] Export to PDF/HTML
 - [ ] Terminal integration
+- [ ] Code snippets library
+- [ ] Find in files (search across multiple notes)
 
 ## License
 
