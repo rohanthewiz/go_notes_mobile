@@ -8,6 +8,8 @@ class Note {
   final String? description;
   final String body;  // Renamed from 'content' to match gonotes
   final String? tags;
+  final String? category;
+  final String? subcategory;
 
   // Security & privacy
   final bool isPrivate;
@@ -35,6 +37,8 @@ class Note {
     this.description,
     required this.body,
     this.tags,
+    this.category,
+    this.subcategory,
     this.isPrivate = false,
     this.encryptionIv,
     this.createdBy,
@@ -56,6 +60,8 @@ class Note {
       'description': description,
       'body': body,
       'tags': tags,
+      'category': category,
+      'subcategory': subcategory,
       'isPrivate': isPrivate ? 1 : 0,
       'encryptionIv': encryptionIv,
       'createdBy': createdBy,
@@ -78,6 +84,8 @@ class Note {
       'description': description,
       'body': body,
       'tags': tags,
+      'category': category,
+      'subcategory': subcategory,
       'is_private': isPrivate,
       'encryption_iv': encryptionIv,
       'created_by': createdBy,
@@ -98,6 +106,8 @@ class Note {
       description: map['description'] as String?,
       body: map['body'] as String? ?? map['content'] as String? ?? '',
       tags: map['tags'] as String?,
+      category: map['category'] as String?,
+      subcategory: map['subcategory'] as String?,
       isPrivate: (map['isPrivate'] as int?) == 1,
       encryptionIv: map['encryptionIv'] as String?,
       createdBy: map['createdBy'] as String?,
@@ -120,6 +130,8 @@ class Note {
       description: json['description'] as String?,
       body: json['body'] as String? ?? '',
       tags: json['tags'] as String?,
+      category: json['category'] as String?,
+      subcategory: json['subcategory'] as String?,
       isPrivate: json['is_private'] as bool? ?? false,
       encryptionIv: json['encryption_iv'] as String?,
       createdBy: json['created_by'] as String?,
@@ -141,6 +153,8 @@ class Note {
     String? description,
     String? body,
     String? tags,
+    String? category,
+    String? subcategory,
     bool? isPrivate,
     String? encryptionIv,
     String? createdBy,
@@ -160,6 +174,8 @@ class Note {
       description: description ?? this.description,
       body: body ?? this.body,
       tags: tags ?? this.tags,
+      category: category ?? this.category,
+      subcategory: subcategory ?? this.subcategory,
       isPrivate: isPrivate ?? this.isPrivate,
       encryptionIv: encryptionIv ?? this.encryptionIv,
       createdBy: createdBy ?? this.createdBy,
@@ -176,7 +192,7 @@ class Note {
 
   @override
   String toString() {
-    return 'Note{id: $id, guid: $guid, title: $title, language: $language, isPinned: $isPinned, isPrivate: $isPrivate}';
+    return 'Note{id: $id, guid: $guid, title: $title, category: $category, subcategory: $subcategory, language: $language, isPinned: $isPinned, isPrivate: $isPrivate}';
   }
 
   @override

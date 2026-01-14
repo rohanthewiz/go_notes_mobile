@@ -21,7 +21,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -36,6 +36,8 @@ class DatabaseService {
         description TEXT,
         body TEXT NOT NULL,
         tags TEXT,
+        category TEXT,
+        subcategory TEXT,
         isPrivate INTEGER NOT NULL DEFAULT 0,
         encryptionIv TEXT,
         createdBy TEXT,
@@ -65,6 +67,10 @@ class DatabaseService {
 
     await db.execute('''
       CREATE INDEX idx_synced ON notes(syncedAt)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_category ON notes(category)
     ''');
   }
 
@@ -102,6 +108,15 @@ class DatabaseService {
       await db.execute('CREATE INDEX idx_guid ON notes(guid)');
       await db.execute('CREATE INDEX idx_synced ON notes(syncedAt)');
     }
+
+    if (oldVersion < 3) {
+      // Add category and subcategory columns
+      await db.execute('ALTER TABLE notes ADD COLUMN category TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN subcategory TEXT');
+
+      // Create index for category
+      await db.execute('CREATE INDEX idx_category ON notes(category)');
+    }
   }
 
   Future<List<Note>> getAllNotes() async {
@@ -131,8 +146,8 @@ class DatabaseService {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'notes',
-      where: 'title LIKE ? OR body LIKE ? OR tags LIKE ?',
-      whereArgs: ['%$query%', '%$query%', '%$query%'],
+      where: 'title LIKE ? OR body LIKE ? OR tags LIKE ? OR category LIKE ? OR subcategory LIKE ?',
+      whereArgs: ['%$query%', '%$query%', '%$query%', '%$query%', '%$query%'],
       orderBy: 'isPinned DESC, updatedAt DESC',
     );
 

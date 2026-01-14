@@ -22,6 +22,9 @@ void main() {
       expect(note.language, 'markdown');
       expect(note.isPinned, false);
       expect(note.isPrivate, false);
+      expect(note.category, null);
+      expect(note.subcategory, null);
+      expect(note.description, null);
     });
 
     test('Note should convert to map correctly', () {
@@ -30,7 +33,10 @@ void main() {
         id: '123',
         guid: 'guid-123',
         title: 'Test Note',
+        description: 'Test description',
         body: 'Test content',
+        category: 'Kubernetes',
+        subcategory: 'pod',
         language: 'markdown',
         createdAt: now,
         updatedAt: now,
@@ -42,7 +48,10 @@ void main() {
       expect(map['id'], '123');
       expect(map['guid'], 'guid-123');
       expect(map['title'], 'Test Note');
+      expect(map['description'], 'Test description');
       expect(map['body'], 'Test content');
+      expect(map['category'], 'Kubernetes');
+      expect(map['subcategory'], 'pod');
       expect(map['language'], 'markdown');
       expect(map['isPinned'], 1);
       expect(map['createdAt'], now.toIso8601String());

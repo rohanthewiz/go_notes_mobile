@@ -21,6 +21,9 @@ class NoteEditorScreen extends StatefulWidget {
 
 class _NoteEditorScreenState extends State<NoteEditorScreen> {
   final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+  final TextEditingController _subcategoryController = TextEditingController();
   final FocusNode _titleFocusNode = FocusNode();
 
   Note? _note;
@@ -30,6 +33,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   bool _isLoading = true;
   bool _hasUnsavedChanges = false;
   bool _autoSaveEnabled = true;
+  bool _showMetadata = false;
 
   @override
   void initState() {
@@ -64,6 +68,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       setState(() {
         _note = note;
         _titleController.text = note.title;
+        _descriptionController.text = note.description ?? '';
+        _categoryController.text = note.category ?? '';
+        _subcategoryController.text = note.subcategory ?? '';
         _currentContent = note.body;
         _currentLanguage = note.language;
         _isLoading = false;
@@ -83,6 +90,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       title: _titleController.text.trim().isEmpty
           ? 'Untitled Note'
           : _titleController.text.trim(),
+      description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+      category: _categoryController.text.trim().isEmpty ? null : _categoryController.text.trim(),
+      subcategory: _subcategoryController.text.trim().isEmpty ? null : _subcategoryController.text.trim(),
       body: _currentContent,
       language: _currentLanguage,
     );
@@ -232,10 +242,73 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     return true;
   }
 
+  void _showMetadataDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Note Metadata'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  hintText: 'Brief description of the note',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+                onChanged: (_) => setState(() => _hasUnsavedChanges = true),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _categoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  hintText: 'e.g., Kubernetes, Python, Documentation',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() => _hasUnsavedChanges = true),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _subcategoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Subcategory',
+                  hintText: 'e.g., pod, deployment, service',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) => setState(() => _hasUnsavedChanges = true),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          if (_hasUnsavedChanges)
+            ElevatedButton(
+              onPressed: () {
+                _saveNote();
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     _titleController.dispose();
+    _descriptionController.dispose();
+    _categoryController.dispose();
+    _subcategoryController.dispose();
     _titleFocusNode.dispose();
     super.dispose();
   }
@@ -297,6 +370,14 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
                 icon: const Icon(Icons.code),
                 onPressed: _showLanguageSelector,
                 tooltip: 'Change Language',
+              ),
+            ),
+            Focus(
+              canRequestFocus: false,
+              child: IconButton(
+                icon: const Icon(Icons.info_outline),
+                onPressed: _showMetadataDialog,
+                tooltip: 'Edit Metadata',
               ),
             ),
             Focus(
