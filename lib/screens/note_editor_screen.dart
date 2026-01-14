@@ -23,7 +23,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
-  final TextEditingController _subcategoryController = TextEditingController();
+  final TextEditingController _subcategoriesController = TextEditingController();
   final FocusNode _titleFocusNode = FocusNode();
 
   Note? _note;
@@ -70,7 +70,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
         _titleController.text = note.title;
         _descriptionController.text = note.description ?? '';
         _categoryController.text = note.category ?? '';
-        _subcategoryController.text = note.subcategory ?? '';
+        _subcategoriesController.text = note.subcategories?.join(', ') ?? '';
         _currentContent = note.body;
         _currentLanguage = note.language;
         _isLoading = false;
@@ -86,13 +86,22 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     if (_note == null) return;
 
     final provider = context.read<NoteProvider>();
+
+    // Parse subcategories from comma-separated string
+    List<String>? subcategories;
+    final subcatsText = _subcategoriesController.text.trim();
+    if (subcatsText.isNotEmpty) {
+      subcategories = subcatsText.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      if (subcategories.isEmpty) subcategories = null;
+    }
+
     final updatedNote = _note!.copyWith(
       title: _titleController.text.trim().isEmpty
           ? 'Untitled Note'
           : _titleController.text.trim(),
       description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
       category: _categoryController.text.trim().isEmpty ? null : _categoryController.text.trim(),
-      subcategory: _subcategoryController.text.trim().isEmpty ? null : _subcategoryController.text.trim(),
+      subcategories: subcategories,
       body: _currentContent,
       language: _currentLanguage,
     );
@@ -273,12 +282,14 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: _subcategoryController,
+                controller: _subcategoriesController,
                 decoration: const InputDecoration(
-                  labelText: 'Subcategory',
-                  hintText: 'e.g., pod, deployment, service',
+                  labelText: 'Subcategories',
+                  hintText: 'Comma-separated: pod, deployment, service',
+                  helperText: 'Enter multiple subcategories separated by commas',
                   border: OutlineInputBorder(),
                 ),
+                maxLines: 2,
                 onChanged: (_) => setState(() => _hasUnsavedChanges = true),
               ),
             ],
@@ -308,7 +319,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
     _titleController.dispose();
     _descriptionController.dispose();
     _categoryController.dispose();
-    _subcategoryController.dispose();
+    _subcategoriesController.dispose();
     _titleFocusNode.dispose();
     super.dispose();
   }

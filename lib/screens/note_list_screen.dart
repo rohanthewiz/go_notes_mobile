@@ -307,15 +307,15 @@ class _NoteListItem extends StatelessWidget {
                       labelStyle: const TextStyle(fontSize: 11),
                       backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                     ),
-                  if (note.subcategory != null && note.subcategory!.isNotEmpty)
-                    Chip(
-                      label: Text(note.subcategory!),
+                  if (note.subcategories != null && note.subcategories!.isNotEmpty)
+                    ...note.subcategories!.map((subcat) => Chip(
+                      label: Text(subcat),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       labelStyle: const TextStyle(fontSize: 11),
                       backgroundColor: Colors.orange.withOpacity(0.1),
-                    ),
+                    )),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

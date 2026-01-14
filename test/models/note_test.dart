@@ -23,7 +23,7 @@ void main() {
       expect(note.isPinned, false);
       expect(note.isPrivate, false);
       expect(note.category, null);
-      expect(note.subcategory, null);
+      expect(note.subcategories, null);
       expect(note.description, null);
     });
 
@@ -36,7 +36,7 @@ void main() {
         description: 'Test description',
         body: 'Test content',
         category: 'Kubernetes',
-        subcategory: 'pod',
+        subcategories: ['pod', 'deployment', 'service'],
         language: 'markdown',
         createdAt: now,
         updatedAt: now,
@@ -51,11 +51,33 @@ void main() {
       expect(map['description'], 'Test description');
       expect(map['body'], 'Test content');
       expect(map['category'], 'Kubernetes');
-      expect(map['subcategory'], 'pod');
+      expect(map['subcategory'], 'pod,deployment,service');
       expect(map['language'], 'markdown');
       expect(map['isPinned'], 1);
       expect(map['createdAt'], now.toIso8601String());
       expect(map['updatedAt'], now.toIso8601String());
+    });
+
+    test('Note should handle multiple subcategories in fromMap', () {
+      final now = DateTime.now();
+      final map = {
+        'id': '123',
+        'guid': 'guid-123',
+        'title': 'Test Note',
+        'body': 'Test content',
+        'category': 'Kubernetes',
+        'subcategory': 'pod,deployment,service',
+        'language': 'markdown',
+        'createdAt': now.toIso8601String(),
+        'updatedAt': now.toIso8601String(),
+        'isPinned': 0,
+      };
+
+      final note = Note.fromMap(map);
+
+      expect(note.category, 'Kubernetes');
+      expect(note.subcategories, ['pod', 'deployment', 'service']);
+      expect(note.subcategories!.length, 3);
     });
 
     test('Note should be created from map correctly', () {

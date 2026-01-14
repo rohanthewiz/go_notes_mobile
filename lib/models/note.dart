@@ -9,7 +9,7 @@ class Note {
   final String body;  // Renamed from 'content' to match gonotes
   final String? tags;
   final String? category;
-  final String? subcategory;
+  final List<String>? subcategories;  // Multiple subcategories per category
 
   // Security & privacy
   final bool isPrivate;
@@ -38,7 +38,7 @@ class Note {
     required this.body,
     this.tags,
     this.category,
-    this.subcategory,
+    this.subcategories,
     this.isPrivate = false,
     this.encryptionIv,
     this.createdBy,
@@ -61,7 +61,7 @@ class Note {
       'body': body,
       'tags': tags,
       'category': category,
-      'subcategory': subcategory,
+      'subcategory': subcategories?.join(','),  // Store as comma-separated string in singular column
       'isPrivate': isPrivate ? 1 : 0,
       'encryptionIv': encryptionIv,
       'createdBy': createdBy,
@@ -85,7 +85,7 @@ class Note {
       'body': body,
       'tags': tags,
       'category': category,
-      'subcategory': subcategory,
+      'subcategories': subcategories,  // Send as array for API
       'is_private': isPrivate,
       'encryption_iv': encryptionIv,
       'created_by': createdBy,
@@ -99,6 +99,14 @@ class Note {
   }
 
   factory Note.fromMap(Map<String, dynamic> map) {
+    // Parse subcategories from comma-separated string in singular 'subcategory' column
+    List<String>? subcategories;
+    if (map['subcategory'] != null && (map['subcategory'] as String).isNotEmpty) {
+      final subcatStr = map['subcategory'] as String;
+      // Split by comma and trim each subcategory
+      subcategories = subcatStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    }
+
     return Note(
       id: map['id'] as String,
       guid: map['guid'] as String,
@@ -107,7 +115,7 @@ class Note {
       body: map['body'] as String? ?? map['content'] as String? ?? '',
       tags: map['tags'] as String?,
       category: map['category'] as String?,
-      subcategory: map['subcategory'] as String?,
+      subcategories: subcategories,
       isPrivate: (map['isPrivate'] as int?) == 1,
       encryptionIv: map['encryptionIv'] as String?,
       createdBy: map['createdBy'] as String?,
@@ -123,6 +131,16 @@ class Note {
   }
 
   factory Note.fromJson(Map<String, dynamic> json) {
+    // Parse subcategories from array
+    List<String>? subcategories;
+    if (json['subcategories'] != null) {
+      if (json['subcategories'] is List) {
+        subcategories = (json['subcategories'] as List).map((e) => e.toString()).toList();
+      } else if (json['subcategories'] is String && (json['subcategories'] as String).isNotEmpty) {
+        subcategories = [(json['subcategories'] as String)];
+      }
+    }
+
     return Note(
       id: json['id']?.toString() ?? '',
       guid: json['guid'] as String,
@@ -131,7 +149,7 @@ class Note {
       body: json['body'] as String? ?? '',
       tags: json['tags'] as String?,
       category: json['category'] as String?,
-      subcategory: json['subcategory'] as String?,
+      subcategories: subcategories,
       isPrivate: json['is_private'] as bool? ?? false,
       encryptionIv: json['encryption_iv'] as String?,
       createdBy: json['created_by'] as String?,
@@ -154,7 +172,7 @@ class Note {
     String? body,
     String? tags,
     String? category,
-    String? subcategory,
+    List<String>? subcategories,
     bool? isPrivate,
     String? encryptionIv,
     String? createdBy,
@@ -175,7 +193,7 @@ class Note {
       body: body ?? this.body,
       tags: tags ?? this.tags,
       category: category ?? this.category,
-      subcategory: subcategory ?? this.subcategory,
+      subcategories: subcategories ?? this.subcategories,
       isPrivate: isPrivate ?? this.isPrivate,
       encryptionIv: encryptionIv ?? this.encryptionIv,
       createdBy: createdBy ?? this.createdBy,
@@ -192,7 +210,7 @@ class Note {
 
   @override
   String toString() {
-    return 'Note{id: $id, guid: $guid, title: $title, category: $category, subcategory: $subcategory, language: $language, isPinned: $isPinned, isPrivate: $isPrivate}';
+    return 'Note{id: $id, guid: $guid, title: $title, category: $category, subcategories: $subcategories, language: $language, isPinned: $isPinned, isPrivate: $isPrivate}';
   }
 
   @override
