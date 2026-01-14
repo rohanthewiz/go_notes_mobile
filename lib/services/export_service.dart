@@ -194,7 +194,7 @@ class ExportService {
     final file = File(filePath);
 
     // Write raw content as-is
-    await file.writeAsString(note.content, flush: true);
+    await file.writeAsString(note.body, flush: true);
     return file;
   }
 
@@ -211,7 +211,7 @@ class ExportService {
     final markdownContent = '''# ${note.title}
 
 ```${note.language}
-${note.content}
+${note.body}
 ```
 ''';
 
@@ -229,7 +229,7 @@ ${note.content}
     final file = File(filePath);
 
     // Write raw content for code files
-    await file.writeAsString(note.content, flush: true);
+    await file.writeAsString(note.body, flush: true);
     return file;
   }
 

@@ -275,7 +275,7 @@ class _NoteListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                note.content.isEmpty ? 'Empty note' : note.content,
+                note.body.isEmpty ? 'Empty note' : note.body,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: Colors.grey[600]),

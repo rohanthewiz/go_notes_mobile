@@ -64,7 +64,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       setState(() {
         _note = note;
         _titleController.text = note.title;
-        _currentContent = note.content;
+        _currentContent = note.body;
         _currentLanguage = note.language;
         _isLoading = false;
       });
@@ -83,7 +83,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen> {
       title: _titleController.text.trim().isEmpty
           ? 'Untitled Note'
           : _titleController.text.trim(),
-      content: _currentContent,
+      body: _currentContent,
       language: _currentLanguage,
     );
 
