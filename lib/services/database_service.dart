@@ -21,8 +21,9 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -30,16 +31,32 @@ class DatabaseService {
     await db.execute('''
       CREATE TABLE notes (
         id TEXT PRIMARY KEY,
+        guid TEXT NOT NULL UNIQUE,
         title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        language TEXT NOT NULL,
+        description TEXT,
+        body TEXT NOT NULL,
+        tags TEXT,
+        category TEXT,
+        subcategory TEXT,
+        isPrivate INTEGER NOT NULL DEFAULT 0,
+        encryptionIv TEXT,
+        createdBy TEXT,
+        updatedBy TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
+        authoredAt TEXT,
+        syncedAt TEXT,
+        deletedAt TEXT,
+        language TEXT NOT NULL,
         isPinned INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
-    // Create index for searching
+    // Create indexes for searching and sync
+    await db.execute('''
+      CREATE INDEX idx_guid ON notes(guid)
+    ''');
+
     await db.execute('''
       CREATE INDEX idx_title ON notes(title)
     ''');
@@ -47,6 +64,59 @@ class DatabaseService {
     await db.execute('''
       CREATE INDEX idx_updated ON notes(updatedAt DESC)
     ''');
+
+    await db.execute('''
+      CREATE INDEX idx_synced ON notes(syncedAt)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX idx_category ON notes(category)
+    ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add new columns for gonotes compatibility
+      await db.execute('ALTER TABLE notes ADD COLUMN guid TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN description TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN body TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN tags TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN isPrivate INTEGER NOT NULL DEFAULT 0');
+      await db.execute('ALTER TABLE notes ADD COLUMN encryptionIv TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN createdBy TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN updatedBy TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN authoredAt TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN syncedAt TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN deletedAt TEXT');
+
+      // Migrate existing data: copy content to body, generate GUIDs
+      final notes = await db.query('notes');
+      for (final note in notes) {
+        final id = note['id'] as String;
+        await db.update(
+          'notes',
+          {
+            'guid': id, // Use existing id as guid for migration
+            'body': note['content'], // Copy content to body
+          },
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      }
+
+      // Create new indexes
+      await db.execute('CREATE INDEX idx_guid ON notes(guid)');
+      await db.execute('CREATE INDEX idx_synced ON notes(syncedAt)');
+    }
+
+    if (oldVersion < 3) {
+      // Add category and subcategory columns
+      await db.execute('ALTER TABLE notes ADD COLUMN category TEXT');
+      await db.execute('ALTER TABLE notes ADD COLUMN subcategory TEXT');
+
+      // Create index for category
+      await db.execute('CREATE INDEX idx_category ON notes(category)');
+    }
   }
 
   Future<List<Note>> getAllNotes() async {
@@ -76,8 +146,8 @@ class DatabaseService {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'notes',
-      where: 'title LIKE ? OR content LIKE ?',
-      whereArgs: ['%$query%', '%$query%'],
+      where: 'title LIKE ? OR body LIKE ? OR tags LIKE ? OR category LIKE ? OR subcategory LIKE ?',
+      whereArgs: ['%$query%', '%$query%', '%$query%', '%$query%', '%$query%'],
       orderBy: 'isPinned DESC, updatedAt DESC',
     );
 

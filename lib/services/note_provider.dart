@@ -42,10 +42,12 @@ class NoteProvider with ChangeNotifier {
     String language = 'markdown',
   }) async {
     final now = DateTime.now();
+    final uuid = const Uuid().v4();
     final note = Note(
-      id: const Uuid().v4(),
+      id: uuid,
+      guid: uuid,
       title: title ?? 'Untitled Note',
-      content: content ?? '',
+      body: content ?? '',
       language: language,
       createdAt: now,
       updatedAt: now,
@@ -126,7 +128,7 @@ class NoteProvider with ChangeNotifier {
 
     await createNote(
       title: title,
-      content: content,
+      content: content,  // Will be assigned to 'body' in createNote
       language: language,
     );
   }

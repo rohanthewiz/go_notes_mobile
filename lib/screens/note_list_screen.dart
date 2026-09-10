@@ -274,25 +274,63 @@ class _NoteListItem extends StatelessWidget {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (note.description != null && note.description!.isNotEmpty) ...[
+                Text(
+                  note.description!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontStyle: FontStyle.italic,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+              ],
               Text(
-                note.content.isEmpty ? 'Empty note' : note.content,
+                note.body.isEmpty ? 'Empty note' : note.body,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: Colors.grey[600]),
               ),
               const SizedBox(height: 4),
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
                 children: [
-                  Text(
-                    LanguageSelector.getLanguageName(note.language),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).primaryColor,
+                  if (note.category != null && note.category!.isNotEmpty)
+                    Chip(
+                      label: Text(note.category!),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      labelStyle: const TextStyle(fontSize: 11),
+                      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                     ),
-                  ),
-                  Text(
-                    ' • ${dateFormat.format(note.updatedAt)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  if (note.subcategories != null && note.subcategories!.isNotEmpty)
+                    ...note.subcategories!.map((subcat) => Chip(
+                      label: Text(subcat),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      labelStyle: const TextStyle(fontSize: 11),
+                      backgroundColor: Colors.orange.withOpacity(0.1),
+                    )),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        LanguageSelector.getLanguageName(note.language),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                      Text(
+                        ' • ${dateFormat.format(note.updatedAt)}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      ),
+                    ],
                   ),
                 ],
               ),
